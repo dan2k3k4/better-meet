@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: write # needed to create releases on tags
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check syntax
+        run: |
+          for f in *.js; do node --check "$f"; done
+          jq empty manifest.json
+
+      - name: Package
+        run: zip -r better-meet.zip manifest.json *.js *.html icon.png LICENSE
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: better-meet
+          path: better-meet.zip
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "v$(jq -r .version manifest.json)" = "$GITHUB_REF_NAME" \
+            || { echo "Tag $GITHUB_REF_NAME doesn't match manifest version"; exit 1; }
+          gh release create "$GITHUB_REF_NAME" better-meet.zip --generate-notes
