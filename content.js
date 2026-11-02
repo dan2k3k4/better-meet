@@ -43,10 +43,15 @@ chrome.storage.sync.get(DEFAULTS, (opts) => {
       // ponytail: anchor on the meeting code text in Meet's bottom-left bar (locale-proof).
       // If not found, only the window title shows the timer.
       const code = location.pathname.slice(1);
-      const anchor = code && [...document.querySelectorAll('div, span')]
-        .find((el) => el.childElementCount === 0 && el.textContent.trim() === code);
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let anchor = null;
+      while (code && !anchor && walker.nextNode()) {
+        const el = walker.currentNode.parentElement;
+        if (walker.currentNode.nodeValue.trim() === code && el.getClientRects().length) anchor = el;
+      }
       if (anchor) {
         badge = document.createElement('span');
+        badge.dataset.betterMeet = 'timer';
         badge.style.marginLeft = '8px';
         anchor.after(badge);
       }
