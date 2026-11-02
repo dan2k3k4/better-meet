@@ -23,7 +23,7 @@ jobs:
       - name: Package
         run: zip -r better-meet.zip manifest.json *.js *.html icon.png LICENSE
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: better-meet
           path: better-meet.zip
