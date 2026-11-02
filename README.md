@@ -41,6 +41,12 @@ export default {
 
 Google offers no API for building a Meet client, so this extension reads and clicks Meet's own page. When Google changes Meet's UI, selectors in `content.js` may need updating. Text matching is English-only for now. PRs welcome.
 
+## More
+
+- [Contributing](CONTRIBUTING.md)
+- [Privacy policy](PRIVACY.md): no data is collected
+- [Security policy](SECURITY.md)
+
 ## License
 
 MIT

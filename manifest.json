@@ -3,7 +3,7 @@
   "name": "Better Meet",
   "short_name": "Better Meet",
   "description": "Better Meet for Google Meet: join muted, get notified when someone is waiting, and see how long you've been in the call.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "icons": { "128": "icon.png" },
   "permissions": ["storage", "notifications"],
   "background": { "service_worker": "background.js" },
