@@ -1,13 +1,26 @@
 // ponytail: Meet has no API, so this scrapes its DOM. Text/aria matches are English-only;
 // when Meet changes its UI, fix the selectors in this file first.
-const DEFAULTS = { muteMic: true, muteCam: true, notifyWaiting: true, timer: true };
+const DEFAULTS = { muteMic: true, muteCam: true, notifyWaiting: true, timer: true, hotMic: true };
 const TITLE_PREFIX = /^\d+:\d\d:\d\d · /;
+
+// Meet's mic/camera toggles, both on the join page and in the call.
+const findToggle = (re) => [...document.querySelectorAll('[data-is-muted]')]
+  .find((el) => re.test(el.getAttribute('aria-label') || ''));
+const isMuted = (btn) => btn.getAttribute('data-is-muted') === 'true';
+
+// From background.js: toolbar click, keyboard shortcut, or "Mute" on the hot-mic notification.
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type !== 'mic-toggle' && msg.type !== 'mic-mute') return;
+  const btn = findToggle(/microphone/i);
+  if (btn && !(msg.type === 'mic-mute' && isMuted(btn))) btn.click();
+});
 
 chrome.storage.sync.get(DEFAULTS, (opts) => {
   const muted = { mic: !opts.muteMic, cam: !opts.muteCam }; // true = already handled
   let joinedAt = null;
   let badge = null;
   let lastNotified = 0;
+  let mic; // 'live' | 'muted' | null (not in a call), as last reported to background.js
 
   const inCall = () =>
     !!document.querySelector('[aria-label="Leave call"], [jsname="CQylAd"]');
@@ -16,10 +29,9 @@ chrome.storage.sync.get(DEFAULTS, (opts) => {
   function muteBeforeJoin() {
     for (const [key, re] of [['mic', /microphone/i], ['cam', /camera/i]]) {
       if (muted[key]) continue;
-      const btn = [...document.querySelectorAll('[data-is-muted]')]
-        .find((el) => re.test(el.getAttribute('aria-label') || ''));
+      const btn = findToggle(re);
       if (!btn) continue;
-      if (btn.getAttribute('data-is-muted') === 'false') btn.click();
+      if (!isMuted(btn)) btn.click();
       muted[key] = true;
     }
   }
@@ -65,7 +77,16 @@ chrome.storage.sync.get(DEFAULTS, (opts) => {
     if (!now) joinedAt = null; // leave/rejoin restarts from 0
     if (!now) muteBeforeJoin();
     if (opts.timer) updateTimer();
+    const btn = now && findToggle(/microphone/i);
+    const state = btn ? (isMuted(btn) ? 'muted' : 'live') : null;
+    if (state !== mic) chrome.runtime.sendMessage({ type: 'mic', state: (mic = state) });
   }, 500);
+
+  if (opts.hotMic) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && mic === 'live') chrome.runtime.sendMessage({ type: 'hotmic' });
+    });
+  }
 
   if (opts.notifyWaiting) {
     new MutationObserver((records) => {
