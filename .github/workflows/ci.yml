@@ -7,13 +7,15 @@ on:
   pull_request:
 
 permissions:
-  contents: write # needed to create releases on tags
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Check syntax
         run: |
@@ -29,11 +31,23 @@ jobs:
           name: better-meet
           path: better-meet.zip
 
+  # Only this job can write to the repo, and only for v* tags.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           test "v$(jq -r .version manifest.json)" = "$GITHUB_REF_NAME" \
             || { echo "Tag $GITHUB_REF_NAME doesn't match manifest version"; exit 1; }
+          make zip
           gh release create "$GITHUB_REF_NAME" better-meet.zip --generate-notes
