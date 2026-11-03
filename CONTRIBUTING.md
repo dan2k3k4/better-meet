@@ -8,7 +8,7 @@ Thanks for helping! Bug reports, selector fixes, and translations are especially
 2. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and select the repo folder.
 3. After editing, click the reload icon on the extension card, then reload your Meet tab.
 
-There's no build step and there are no dependencies. Please keep it that way unless there's a strong reason not to.
+There's no build step and there are no dependencies (`make zip` just packages the files for the store). Please keep it that way unless there's a strong reason not to.
 
 ## Where things live
 
@@ -31,3 +31,5 @@ Google Meet has no API for this, so `content.js` relies on Meet's page structure
 1. Bump `version` in `manifest.json` and commit.
 2. `git tag -s vX.Y.Z -m "Better Meet vX.Y.Z" && git push --tags`
 3. CI creates a GitHub Release with `better-meet.zip`. Upload that zip to the Chrome Web Store.
+
+To build the same zip locally, run `make zip` (git ignores it).
