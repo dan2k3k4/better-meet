@@ -2,11 +2,15 @@
   "manifest_version": 3,
   "name": "Better Meet",
   "short_name": "Better Meet",
-  "description": "Better Meet for Google Meet: join muted, get notified when someone is waiting, and see how long you've been in the call.",
-  "version": "0.1.1",
+  "description": "Better Meet for Google Meet: join muted, mute from any tab, get notified when someone is waiting, and see how long you've been in the call.",
+  "version": "0.2.0",
   "icons": { "128": "icon.png" },
+  "action": { "default_title": "Better Meet: click to mute or unmute your Meet call" },
   "permissions": ["storage", "notifications"],
   "background": { "service_worker": "background.js" },
+  "commands": {
+    "toggle-mic": { "suggested_key": { "default": "Alt+M" }, "description": "Mute or unmute your Meet call" }
+  },
   "content_scripts": [
     { "matches": ["https://meet.google.com/*"], "js": ["content.js"], "run_at": "document_idle" }
   ],
