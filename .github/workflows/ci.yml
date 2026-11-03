@@ -19,6 +19,7 @@ jobs:
         run: |
           for f in *.js; do node --check "$f"; done
           jq empty manifest.json
+          jq -e '.description | length <= 132' manifest.json # Chrome Web Store limit
 
       - name: Package
         run: make zip
